@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
 
     private int jumpCount;
     public int maxJumps = 2; // Allows double jump
+    private bool wasGroundedLastFrame;
 
     private void Start()
     {
@@ -24,8 +25,9 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         Move();
-        Jump();
         CheckGrounded();
+        Jump();
+        
     }
 
     void Move()
@@ -44,7 +46,7 @@ public class PlayerController : MonoBehaviour
         if (moveInput > 0 && !isFacingRight)
         {
             Flip();
-            Debug.Log("Flipping left!");
+            Debug.Log("Flipping right!");
         }
         else if (moveInput < 0 && isFacingRight)
         {
@@ -55,20 +57,26 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if (Input.GetButtonDown("Jump") && jumpCount > 0)
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)) && jumpCount > 0)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             jumpCount--;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            Debug.Log("Jumps remaining: " + jumpCount);
         }
     }
 
     void CheckGrounded()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        if (isGrounded)
+
+        if (isGrounded && !wasGroundedLastFrame)
         {
+            // Only reset jump when you newly land, not when you're already grounded.
             jumpCount = maxJumps;
         }
+
+        wasGroundedLastFrame = isGrounded;
+
         animator.SetBool("Jumping", !isGrounded);
     }
 
